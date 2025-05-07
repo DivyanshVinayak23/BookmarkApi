@@ -1,9 +1,9 @@
-package com.divyansh.bookmark.model;
+package com.divyansh.bookmark_api.model;
 
 import lombok.*;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
-import java.util.LocalDateTime
+import java.time.LocalDateTime;
 
 //Bookmark entity class
 
