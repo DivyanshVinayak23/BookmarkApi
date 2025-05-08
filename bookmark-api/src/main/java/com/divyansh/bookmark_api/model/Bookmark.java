@@ -11,7 +11,7 @@ import java.time.LocalDateTime;
 @Data //Lombok automatically creates the getter,setter,toString and equals
 @NoArgsConstructor //Lombok constructor with no arguments
 @AllArgsConstructor //Lombok constructor with all parameters
-
+@Builder
 public class Bookmark {
     @Id //marks id as the primary key in the db
     private String id;
@@ -21,4 +21,6 @@ public class Bookmark {
     private String[] tags;
     private LocalDateTime createdAt;
     
+    @Builder.Default
+    private LocalDateTime updatedAt = LocalDateTime.now();
 }

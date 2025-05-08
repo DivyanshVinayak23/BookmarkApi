@@ -26,7 +26,14 @@ public class BookmarkControllerTest {
 
     @Test
     public void testGetById() throws Exception {
-        Bookmark bookmark = new Bookmark("1", "Test Bookmark", "https://www.google.com", "Test Description", new String[]{"test", "bookmark"}, LocalDateTime.now());
+        Bookmark bookmark = Bookmark.builder()
+            .id("1")
+            .title("Test Bookmark")
+            .url("https://www.google.com")
+            .description("Test Description")
+            .tags(new String[]{"test", "bookmark"})
+            .createdAt(LocalDateTime.now())
+            .build();
         when(bookmarkService.getById("1")).thenReturn(bookmark);
 
         mockMvc.perform(get("/bookmarks/1"))

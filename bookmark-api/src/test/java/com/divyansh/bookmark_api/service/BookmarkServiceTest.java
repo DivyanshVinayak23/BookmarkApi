@@ -22,7 +22,15 @@ public class BookmarkServiceTest {
     @Test
     public void testGetBookmarkById(){
         BookmarkService bookmarkService = new BookmarkService(bookmarkRepository);
-        Optional<Bookmark> bookmark = Optional.of(new Bookmark("1", "Test Bookmark", "https://www.google.com", "Test Description", new String[]{"test", "bookmark"}, LocalDateTime.now()));
+        Bookmark testBookmark = Bookmark.builder()
+            .id("1")
+            .title("Test Bookmark")
+            .url("https://www.google.com")
+            .description("Test Description")
+            .tags(new String[]{"test", "bookmark"})
+            .createdAt(LocalDateTime.now())
+            .build();
+        Optional<Bookmark> bookmark = Optional.of(testBookmark);
         when(bookmarkRepository.findById("1")).thenReturn(bookmark);
         Bookmark result = bookmarkService.getById("1");
         assertEquals("Test Bookmark", result.getTitle());
