@@ -8,6 +8,7 @@ import com.divyansh.bookmark_api.model.Bookmark;
 import java.util.Optional;
 import java.util.List;
 
+//Repository is used to access the MongoDB database and perform CRUD operations.
 @Repository
 public class BookmarkRepository {
     private final MongoTemplate mongoTemplate;
@@ -17,6 +18,7 @@ public class BookmarkRepository {
     }
 
     public Optional<Bookmark> findById(String id) {
+        //used optional here since findById can return a null object
         return Optional.ofNullable(mongoTemplate.findById(id, Bookmark.class));
     }
 

@@ -6,6 +6,8 @@ import com.divyansh.bookmark_api.repository.BookmarkRepository;
 import java.util.Optional;
 import java.util.List;
 
+// The service will contain the buisness logic for the API
+//Encapsulates the Repository
 @Service
 public class BookmarkService {
     private final BookmarkRepository bookmarkRepository;
@@ -19,6 +21,7 @@ public class BookmarkService {
         if(bookmark.isPresent()) {
             return bookmark.get();
         }
+        //Runtime Exception handled by GlobalExceptionHandler
         throw new RuntimeException("Bookmark not found");
     }
 
