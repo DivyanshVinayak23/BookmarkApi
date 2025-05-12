@@ -1,5 +1,6 @@
 from kafka import KafkaProducer
 import json
+from datetime import datetime
 
 def send_bookmark(title, url, description, tags):
     producer = KafkaProducer(
@@ -11,12 +12,19 @@ def send_bookmark(title, url, description, tags):
         "title": title,
         "url": url,
         "description": description,
-        "tags": tags
+        "tags": tags,
+        "createdAt": datetime.now().isoformat(),
+        "updatedAt": datetime.now().isoformat()
     }
     
-    producer.send('bookmark-topic', value=bookmark)
-    producer.flush()
-    print("Bookmark sent successfully!")
+    try:
+        producer.send('bookmark-topic', value=bookmark)
+        producer.flush()
+        print("Bookmark sent successfully!")
+    except Exception as e:
+        print(f"Error sending bookmark: {str(e)}")
+    finally:
+        producer.close()
 
 if __name__ == "__main__":
     # Example usage
