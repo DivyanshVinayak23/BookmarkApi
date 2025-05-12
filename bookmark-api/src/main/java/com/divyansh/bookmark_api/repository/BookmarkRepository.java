@@ -22,6 +22,11 @@ public class BookmarkRepository {
         return Optional.ofNullable(mongoTemplate.findById(id, Bookmark.class));
     }
 
+    public Optional<Bookmark> findByTitle(String title) {
+        Query query = new Query(Criteria.where("title").is(title));
+        return Optional.ofNullable(mongoTemplate.findOne(query, Bookmark.class));
+    }
+
     public Bookmark save(Bookmark bookmark) {
         return mongoTemplate.save(bookmark);
     }
