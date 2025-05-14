@@ -1,5 +1,5 @@
 # Bookmark API - Dockerized
-
+![Alt text](DataFlowDiagram.png)
 This project contains a Spring Boot application for managing bookmarks, with Kafka integration for asynchronous processing.
 
 ## Prerequisites
