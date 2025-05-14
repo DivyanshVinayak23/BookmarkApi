@@ -10,6 +10,9 @@ import lombok.*;
 @AllArgsConstructor
 
 
+//Defination class for the bookmark data transfer object
+//Possible improvement: don't leak all the entity fields in the dto, only expose what is needed for the client to use it.
+
 public class BookmarkDto {
     @Id
     private String id;

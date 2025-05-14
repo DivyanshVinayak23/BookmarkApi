@@ -1,6 +1,8 @@
 package com.divyansh.bookmark_api.dto;
 import com.divyansh.bookmark_api.model.Bookmark;
 
+//This mapper is used to convert a DTO to bookmark entity and vice versa
+//all the getter and setters come from the lombok library automatically
 public class BookamarkMapper {
     public static BookmarkDto toDto(Bookmark bookmark) {
         BookmarkDto bookmarkDto = new BookmarkDto();

@@ -7,6 +7,7 @@ import org.springframework.data.mongodb.repository.config.EnableMongoRepositorie
 @Configuration
 @EnableMongoAuditing
 @EnableMongoRepositories(basePackages = "com.divyansh.bookmark_api.repository")
+//Basic configuration for MongoDB
 public class MongoConfig {
 
 } 

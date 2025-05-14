@@ -7,6 +7,8 @@ import com.divyansh.bookmark_api.model.Bookmark;
 import com.divyansh.bookmark_api.repository.BookmarkRepository;
 import java.time.LocalDateTime;
 
+//Fixme: KafkaConsumerService is directly using the repository, which is not the right practice as it skips over the business logic
+
 @Service
 public class KafkaConsumerService {
 

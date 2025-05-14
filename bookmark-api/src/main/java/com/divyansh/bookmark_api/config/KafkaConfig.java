@@ -16,7 +16,11 @@ import com.divyansh.bookmark_api.model.Bookmark;
 import java.util.HashMap;
 import java.util.Map;
 
+
+//Configuration class for Kafka configuration
+
 @Configuration
+
 @EnableKafka
 public class KafkaConfig {
 
@@ -28,6 +32,7 @@ public class KafkaConfig {
 
     @Bean
     public ConsumerFactory<String, Bookmark> consumerFactory() {
+       //This factory is used to create a consumer instance
         Map<String, Object> props = new HashMap<>();
         props.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers);
         props.put(ConsumerConfig.GROUP_ID_CONFIG, groupId);
@@ -48,4 +53,5 @@ public class KafkaConfig {
         factory.setConsumerFactory(consumerFactory());
         return factory;
     }
+    //Setting up this configuration allows us to use the @KafkaListener annotation in our application code.
 } 
