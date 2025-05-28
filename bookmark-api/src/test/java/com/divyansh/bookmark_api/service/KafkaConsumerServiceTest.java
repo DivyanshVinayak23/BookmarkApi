@@ -4,7 +4,6 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.kafka.test.context.EmbeddedKafka;
-import org.springframework.kafka.test.EmbeddedKafkaBroker;
 import org.springframework.kafka.core.KafkaTemplate;
 import com.divyansh.bookmark_api.model.Bookmark;
 import com.divyansh.bookmark_api.repository.BookmarkRepository;
@@ -16,8 +15,6 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 @EmbeddedKafka(partitions = 1, topics = {"bookmark-topic"})
 public class KafkaConsumerServiceTest {
 
-    @Autowired
-    private EmbeddedKafkaBroker kafkaBroker;
 
     @Autowired
     private KafkaTemplate<String, String> kafkaTemplate;

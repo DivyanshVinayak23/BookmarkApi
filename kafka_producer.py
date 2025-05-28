@@ -27,7 +27,7 @@ def send_bookmark(title, url, description, tags):
         producer.close()
 
 if __name__ == "__main__":
-    # Example usage
+
     send_bookmark(
         title="Python Kafka Test",
         url="https://python-kafka-test.com",
