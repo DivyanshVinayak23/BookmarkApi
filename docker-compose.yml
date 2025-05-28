@@ -8,11 +8,17 @@ services:
     ports:
       - "27017:27017"
     volumes:
-      - mongo-data:/data/db
+      - mongodb_data:/data/db
     environment:
-      - MONGO_INITDB_DATABASE=bookmarks
+      - MONGO_INITDB_ROOT_USERNAME=root
+      - MONGO_INITDB_ROOT_PASSWORD=example
     networks:
       - bookmark-network
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   # Zookeeper service (required for Kafka)
   zookeeper:
@@ -24,7 +30,7 @@ services:
     networks:
       - bookmark-network
     healthcheck:
-      test: ["CMD", "bash", "-c", "echo ruok | nc localhost 2181"]
+      test: ["CMD", "nc", "-z", "localhost", "2181"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -38,23 +44,75 @@ services:
         condition: service_healthy
     ports:
       - "9092:9092"
+      - "29092:29092"
     environment:
       KAFKA_BROKER_ID: 1
       KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
-      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
       KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092,PLAINTEXT_HOST://localhost:29092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
       KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
       KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
-      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
-      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
-      KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
     networks:
       - bookmark-network
     healthcheck:
       test: ["CMD", "kafka-topics", "--bootstrap-server", "localhost:9092", "--list"]
-      interval: 10s
-      timeout: 5s
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+  # Kafka Connect service
+  kafka-connect:
+    image: confluentinc/cp-kafka-connect:latest
+    container_name: kafka-connect
+    depends_on:
+      kafka:
+        condition: service_healthy
+    ports:
+      - "8083:8083"
+    volumes:
+      - ./kafka-connect/mongodb-sink-connector.json:/tmp/mongodb-sink-connector.json
+    environment:
+      CONNECT_BOOTSTRAP_SERVERS: kafka:9092
+      CONNECT_REST_ADVERTISED_HOST_NAME: kafka-connect
+      CONNECT_REST_PORT: 8083
+      CONNECT_GROUP_ID: bookmark-connect-group
+      CONNECT_CONFIG_STORAGE_TOPIC: bookmark-connect-configs
+      CONNECT_CONFIG_STORAGE_REPLICATION_FACTOR: 1
+      CONNECT_OFFSET_FLUSH_INTERVAL_MS: 10000
+      CONNECT_OFFSET_STORAGE_TOPIC: bookmark-connect-offsets
+      CONNECT_OFFSET_STORAGE_REPLICATION_FACTOR: 1
+      CONNECT_STATUS_STORAGE_TOPIC: bookmark-connect-status
+      CONNECT_STATUS_STORAGE_REPLICATION_FACTOR: 1
+      CONNECT_KEY_CONVERTER: org.apache.kafka.connect.json.JsonConverter
+      CONNECT_VALUE_CONVERTER: org.apache.kafka.connect.json.JsonConverter
+      CONNECT_INTERNAL_KEY_CONVERTER: org.apache.kafka.connect.json.JsonConverter
+      CONNECT_INTERNAL_VALUE_CONVERTER: org.apache.kafka.connect.json.JsonConverter
+      CONNECT_PLUGIN_PATH: "/usr/share/java,/usr/share/confluent-hub-components"
+      CONNECT_LOG4J_ROOT_LOGLEVEL: INFO
+      CONNECT_LOG4J_LOGGERS: org.apache.kafka.connect.runtime.rest=WARN,org.reflections=ERROR
+      CONNECT_HEALTHCHECK_BOOTSTRAP_SERVERS: kafka:9092
+      KAFKA_HEAP_OPTS: "-Xmx512M -Xms512M"
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+    command: >
+      bash -c "
+        echo 'Installing MongoDB Kafka Connector...' &&
+        confluent-hub install --no-prompt mongodb/kafka-connect-mongodb:1.11.0 &&
+        /etc/confluent/docker/run &&
+        echo 'Waiting for Kafka Connect to start...' &&
+        sleep 30 &&
+        echo 'Creating MongoDB Sink Connector...' &&
+        curl -X POST -H 'Content-Type: application/json' --data @/tmp/mongodb-sink-connector.json http://localhost:8083/connectors
+      "
+    networks:
+      - bookmark-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8083/connectors"]
+      interval: 30s
+      timeout: 10s
       retries: 5
 
   # Bookmark API service
@@ -65,17 +123,21 @@ services:
     container_name: bookmark-api
     depends_on:
       mongodb:
-        condition: service_started
+        condition: service_healthy
       kafka:
         condition: service_healthy
     ports:
       - "8080:8080"
     environment:
-      - MONGODB_URI=mongodb://mongodb:27017/bookmarks
-      - MONGODB_SSL_ENABLED=false
       - SPRING_KAFKA_BOOTSTRAP_SERVERS=kafka:9092
+      - MONGODB_URI=mongodb://root:example@mongodb:27017/bookmarks?authSource=admin
     networks:
       - bookmark-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
 
   # Python Kafka Producer (optional)
   kafka-producer:
@@ -97,7 +159,7 @@ services:
 
 # Volumes for persistent data
 volumes:
-  mongo-data:
+  mongodb_data:
 
 # Network for all services
 networks:
